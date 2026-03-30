@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Users, ShoppingCart, Box, LayoutDashboard, LogOut, Menu, X, Bell 
 } from 'lucide-react';
+import { useAuthStore } from '../store/useAuthStore';
 
 export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
-
+  const user = useAuthStore((state) => state.user);
+  const navigate = useNavigate();
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
   // Auto-close sidebar on mobile when navigating
@@ -112,10 +114,15 @@ export default function AdminLayout() {
         </nav>
 
         <div className="p-4 border-t border-gray-200">
-          <Link to="/" className="flex items-center space-x-3 px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 font-medium transition-colors">
+          <button 
+            onClick={()=>{
+              navigate('/');
+            }}
+            className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 font-medium transition-colors"
+          >
             <LogOut className="w-5 h-5 text-center" />
             <span>Logout</span>
-          </Link>
+          </button>
         </div>
       </aside>
 
@@ -132,8 +139,12 @@ export default function AdminLayout() {
               <button className="text-gray-400 hover:text-indigo-600">
                 <Bell className="w-5 h-5" />
               </button>
-              <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold border border-indigo-200">
-                A
+              <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold border border-indigo-200 overflow-hidden">
+                {user?.avatar ? (
+                  <img src={user.avatar} alt={user.full_name} className="w-full h-full object-cover" />
+                ) : (
+                  user?.full_name.charAt(0).toUpperCase() || 'A'
+                )}
               </div>
             </div>
           </div>

@@ -1,215 +1,174 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Layers, ShoppingCart, Star, Box, Heart, Image as ImageIcon } from 'lucide-react';
+import { 
+  ArrowRight, Sparkles, TrendingUp, ShieldCheck, 
+  Truck, Headset, Zap
+} from 'lucide-react';
 import api from '../api/axios';
-
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-  image: string;
-  description: string;
-}
+import type { ProductClient } from '../types';
+import Header from '../components/Header';
 
 export default function Homepage() {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<ProductClient[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Attempt to fetch trending products for the homepage
-    // We would need to implement this endpoint or grab it from a general endpoint
-    // We'll mock it if it falls back.
-    const fetchProducts = async () => {
+    const fetchTrending = async () => {
       try {
-        setLoading(true);
-        const response = await api.get('/products.php'); // Assuming this point exists to fetch all products
-        if (response.data && response.data.success) {
-          // Take top 4 or rely on server side limit in a real app
+        const response = await api.get('/products.php');
+        if (response.data.success) {
           setProducts(response.data.data.slice(0, 4));
         }
       } catch (err) {
-        // Fallback for demo purposes matching the PHP fallback mechanism
-        setProducts([
-          { id: 1, name: "Premium Wireless Headphones", price: 3499000, description: "Noise-cancelling over-ear headphones with 30-hour battery life.", image: "" },
-          { id: 2, name: "Ultra-Slim Laptop Pro", price: 24500000, description: "High-performance laptop for professionals with stunning Retina display.", image: "" },
-          { id: 3, name: "Smart Fitness Watch", price: 1890000, description: "Track your health metrics, steps, and heart rate all day.", image: "" },
-          { id: 4, name: "4K Action Camera", price: 5600000, description: "Capture your adventures in stunning detail, waterproof up to 10m.", image: "" },
-        ]);
+        console.error("Failed to load products");
       } finally {
         setLoading(false);
       }
     };
-
-    fetchProducts();
+    fetchTrending();
   }, []);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+  const formatCurrency = (amount: string | number) => {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(Number(amount));
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50 font-sans">
-      {/* Navigation */}
-      <nav className="bg-white shadow-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16 items-center">
-            <div className="flex items-center space-x-2">
-              <Layers className="text-indigo-600 w-8 h-8" />
-              <span className="font-bold text-xl text-gray-900 tracking-tight">TechStore</span>
-            </div>
-            <div className="hidden md:flex space-x-8">
-              <Link to="/homepage" className="text-gray-600 hover:text-indigo-600 font-medium transition-colors">Home</Link>
-              <Link to="/products" className="text-gray-600 hover:text-indigo-600 font-medium transition-colors">Products</Link>
-              <Link to="/categories" className="text-gray-600 hover:text-indigo-600 font-medium transition-colors">Categories</Link>
-              <Link to="/about" className="text-gray-600 hover:text-indigo-600 font-medium transition-colors">About Us</Link>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Link to="/admin" className="text-sm font-medium text-gray-600 hover:text-indigo-600 transition-colors">Admin Login</Link>
-              <button className="flex items-center bg-indigo-600 text-white px-5 py-2 rounded-full font-medium hover:bg-indigo-700 transition-colors shadow-md hover:shadow-lg">
-                <ShoppingCart className="w-4 h-4 mr-2" /> Cart (0)
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+    <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
+      <Header />
 
       {/* Hero Section */}
-      <div className="relative bg-white overflow-hidden flex-shrink-0">
-        <div className="max-w-7xl mx-auto">
-          <div className="relative z-10 pb-8 bg-white sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32 pt-10 sm:pt-16 lg:pt-24 xl:pt-32">
-            <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-              <div className="sm:text-center lg:text-left">
-                <h1 className="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
-                  <span className="block xl:inline">Next Generation</span>
-                  <span className="block text-indigo-600 xl:inline mt-1">Tech Products</span>
-                </h1>
-                <p className="mt-3 text-base text-gray-500 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
-                  Discover the latest smartphones, cutting-edge laptops, and premium accessories. Elevate your digital life with our curated selection of top-tier electronics.
-                </p>
-                <div className="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
-                  <div className="rounded-md shadow">
-                    <a href="#featured" className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-full text-white bg-indigo-600 hover:bg-indigo-700 md:py-4 md:text-lg md:px-10 transition-all duration-300">
-                      Shop Now
-                    </a>
-                  </div>
-                  <div className="mt-3 sm:mt-0 sm:ml-3">
-                    <Link to="/categories" className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-full text-indigo-700 bg-indigo-100 hover:bg-indigo-200 md:py-4 md:text-lg md:px-10 transition-all duration-300">
-                      View Categories
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </main>
+      <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full -z-10">
+          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-200/30 blur-[120px] rounded-full"></div>
+          <div className="absolute bottom-[10%] right-[-10%] w-[30%] h-[30%] bg-blue-200/20 blur-[100px] rounded-full"></div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="inline-flex items-center space-x-2 bg-indigo-50 px-4 py-2 rounded-full text-indigo-600 mb-8 animate-bounce">
+            <Sparkles className="w-4 h-4" />
+            <span className="text-xs font-black uppercase tracking-widest">New Season Arrival</span>
+          </div>
+          <h1 className="text-5xl md:text-8xl font-black text-gray-900 tracking-tighter mb-8 leading-[0.9]">
+            Design Your <span className="text-indigo-600 italic">Digital</span> <br /> 
+            Lifestyle with Ease
+          </h1>
+          <p className="text-gray-500 text-lg md:text-xl max-w-2xl mx-auto mb-10 font-medium">
+            Discover the future of technology with our curated collection of premium gadgets and electronics. Built for performance, designed for you.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <button 
+              onClick={() => window.location.href = '/products'}
+              className="w-full sm:w-auto bg-gray-900 text-white px-10 py-5 rounded-2xl font-black text-lg shadow-2xl shadow-gray-200 flex items-center justify-center hover:bg-black transition-all group active:scale-95"
+            >
+              Shop Collection 
+              <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-2 transition-transform" />
+            </button>
+            <button className="w-full sm:w-auto bg-white text-gray-900 px-10 py-5 rounded-2xl font-black text-lg shadow-sm border border-gray-100 hover:bg-gray-50 transition-all active:scale-95">
+              Watch Demo
+            </button>
           </div>
         </div>
-        <div className="hidden lg:block lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2">
-          <img className="h-56 w-full object-cover sm:h-72 md:h-96 lg:w-full lg:h-full bg-indigo-50" src="https://images.unsplash.com/photo-1498049794561-7780e7231661?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1920&q=80" alt="Tech workspace" />
-          <div className="absolute inset-0 bg-indigo-600 mix-blend-multiply opacity-20"></div>
-        </div>
-      </div>
+      </section>
 
-      {/* Featured Products */}
-      <div id="featured" className="bg-gray-50 py-16 sm:py-24 flex-1">
+      {/* Featured Section */}
+      <section className="py-24 bg-white rounded-[40px] sm:rounded-[80px] shadow-sm relative z-10 mx-4 sm:mx-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="md:flex md:items-center md:justify-between mb-8">
-            <h2 className="text-3xl font-extrabold tracking-tight text-gray-900">Trending Products</h2>
-            <Link to="/products" className="hidden text-sm font-medium text-indigo-600 hover:text-indigo-500 md:block transition-colors">
-              Shop the collection <span aria-hidden="true">&rarr;</span>
-            </Link>
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
+            <div>
+              <div className="flex items-center space-x-2 text-indigo-600 mb-2">
+                <TrendingUp className="w-5 h-5" />
+                <span className="text-sm font-black uppercase tracking-widest">Trending Now</span>
+              </div>
+              <h2 className="text-4xl md:text-5xl font-black text-gray-900 tracking-tighter">Featured Products</h2>
+            </div>
+            <button 
+              onClick={() => window.location.href = '/products'}
+              className="text-indigo-600 font-black flex items-center group"
+            >
+              View All Products
+              <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-2 transition-transform" />
+            </button>
           </div>
 
           {loading ? (
-             <div className="text-center py-12 bg-white rounded-xl shadow-sm border border-gray-100">
-               <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-               <p className="text-gray-500">Loading brilliant products...</p>
-             </div>
-          ) : products.length === 0 ? (
-            <div className="text-center py-12 bg-white rounded-xl shadow-sm border border-gray-100">
-              <Box className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">No products available at the moment.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+              {[1, 2, 3, 4].map(i => (
+                <div key={i} className="animate-pulse bg-gray-50 rounded-3xl h-96"></div>
+              ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-y-10 sm:grid-cols-2 gap-x-6 lg:grid-cols-4 xl:gap-x-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
               {products.map((prod) => (
-                <div key={prod.id} className="group relative bg-white rounded-2xl shadow-sm border border-gray-100 p-4 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex flex-col">
-                  <div className="w-full h-60 bg-gray-100 rounded-xl overflow-hidden flex items-center justify-center relative">
+                <div key={prod.id} className="group cursor-pointer">
+                  <div className="relative aspect-square bg-gray-50 rounded-3xl overflow-hidden mb-6 group-hover:shadow-2xl group-hover:shadow-indigo-100 transition-all duration-500">
                     {prod.image ? (
-                      <img src={prod.image} alt={prod.name} className="w-full h-full object-center object-cover group-hover:opacity-75 transition-opacity" />
+                      <img src={prod.image} alt={prod.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                     ) : (
-                      <ImageIcon className="w-12 h-12 text-gray-300" />
-                    )}
-                    
-                    <div className="absolute top-2 right-2">
-                      <button className="bg-white/80 backdrop-blur p-2 rounded-full text-gray-400 hover:text-red-500 transition-colors shadow-sm flex items-center justify-center">
-                        <Heart className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-4 flex-1 flex flex-col">
-                    <h3 className="text-sm font-medium text-gray-900 flex-1">
-                      <Link to={`/product/${prod.id}`}>
-                        <span aria-hidden="true" className="absolute inset-0"></span>
-                        {prod.name}
-                      </Link>
-                    </h3>
-                    <p className="mt-1 text-sm text-gray-500 line-clamp-2">{prod.description || 'High performance tech product.'}</p>
-                    
-                    <div className="mt-4 flex items-center justify-between">
-                      <p className="text-lg font-bold text-indigo-600">{formatCurrency(prod.price)}</p>
-                      <div className="flex items-center text-xs text-yellow-400">
-                        <Star className="w-3 h-3 fill-current" />
-                        <Star className="w-3 h-3 fill-current" />
-                        <Star className="w-3 h-3 fill-current" />
-                        <Star className="w-3 h-3 fill-current" />
-                        <Star className="w-3 h-3 fill-current text-gray-300" />
+                      <div className="flex items-center justify-center h-full text-gray-300 bg-gray-100">
+                        <Zap className="w-12 h-12" />
                       </div>
-                    </div>
+                    )}
+                    {Number(prod.sale_price) > 0 && (
+                      <div className="absolute top-4 left-4 bg-red-600 text-white text-[10px] font-black px-3 py-1.5 rounded-xl uppercase tracking-widest shadow-lg shadow-red-200">
+                        Sale
+                      </div>
+                    )}
+                  </div>
+                  <h3 className="text-lg font-black text-gray-900 mb-1 group-hover:text-indigo-600 transition-colors">{prod.name}</h3>
+                  <div className="flex items-center space-x-3">
+                    <span className="text-xl font-black text-gray-900">
+                      {formatCurrency(Number(prod.sale_price) > 0 ? prod.sale_price : prod.price)}
+                    </span>
+                    {Number(prod.sale_price) > 0 && (
+                      <span className="text-sm text-gray-400 line-through font-bold">
+                        {formatCurrency(prod.price)}
+                      </span>
+                    )}
                   </div>
                 </div>
               ))}
             </div>
           )}
-          
-          <div className="mt-8 text-center md:hidden">
-            <Link to="/products" className="text-sm font-medium text-indigo-600 hover:text-indigo-500">
-              Shop all products <span aria-hidden="true">&rarr;</span>
-            </Link>
+        </div>
+      </section>
+
+      {/* Features Grid */}
+      <section className="py-32 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+          <div className="space-y-4">
+            <div className="w-14 h-14 bg-white shadow-xl shadow-gray-100 rounded-2xl flex items-center justify-center text-indigo-600 border border-gray-50">
+              <Truck className="w-7 h-7" />
+            </div>
+            <h3 className="text-2xl font-black text-gray-900 tracking-tight">Express Shipping</h3>
+            <p className="text-gray-500 font-medium leading-relaxed">Get your favorite products delivered to your doorstep within 24 hours in major cities across the country.</p>
+          </div>
+          <div className="space-y-4">
+            <div className="w-14 h-14 bg-white shadow-xl shadow-gray-100 rounded-2xl flex items-center justify-center text-indigo-600 border border-gray-50">
+              <ShieldCheck className="w-7 h-7" />
+            </div>
+            <h3 className="text-2xl font-black text-gray-900 tracking-tight">Secure Payment</h3>
+            <p className="text-gray-500 font-medium leading-relaxed">We use state-of-the-art encryption to ensure your payment information is always safe and secure.</p>
+          </div>
+          <div className="space-y-4">
+            <div className="w-14 h-14 bg-white shadow-xl shadow-gray-100 rounded-2xl flex items-center justify-center text-indigo-600 border border-gray-50">
+              <Headset className="w-7 h-7" />
+            </div>
+            <h3 className="text-2xl font-black text-gray-900 tracking-tight">24/7 Support</h3>
+            <p className="text-gray-500 font-medium leading-relaxed">Our dedicated support team is always available to help you with any questions or issues you may have.</p>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white mt-auto">
-        <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="col-span-1 md:col-span-2">
-              <div className="flex items-center space-x-2 mb-4">
-                <Layers className="text-indigo-400 w-8 h-8" />
-                <span className="font-bold text-xl tracking-tight">TechStore</span>
-              </div>
-              <p className="text-gray-400 text-sm max-w-sm">
-                Providing the best tech gadgets and electronics with guaranteed quality and premium customer service.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4 text-gray-200">Quick Links</h4>
-              <ul className="space-y-2 text-sm text-gray-400">
-                <li><Link to="/about" className="hover:text-indigo-400 transition-colors">About Us</Link></li>
-                <li><Link to="/products" className="hover:text-indigo-400 transition-colors">Shop</Link></li>
-                <li><Link to="/contact" className="hover:text-indigo-400 transition-colors">Contact</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4 text-gray-200">Legal</h4>
-              <ul className="space-y-2 text-sm text-gray-400">
-                <li><a href="#" className="hover:text-indigo-400 transition-colors">Terms of Service</a></li>
-                <li><a href="#" className="hover:text-indigo-400 transition-colors">Privacy Policy</a></li>
-              </ul>
-            </div>
+      <footer className="bg-gray-900 text-white py-20 rounded-t-[40px] sm:rounded-t-[80px]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl font-black tracking-tighter mb-8">DOAN<span className="text-indigo-500">WEB</span></h2>
+          <p className="text-gray-400 mb-12 max-w-md mx-auto">Providing the best tech solutions for your modern lifestyle. Quality and performance guaranteed.</p>
+          <div className="flex justify-center space-x-6 text-gray-500 text-sm font-bold uppercase tracking-widest">
+            <a href="#" className="hover:text-white transition-colors">Privacy</a>
+            <a href="#" className="hover:text-white transition-colors">Terms</a>
+            <a href="#" className="hover:text-white transition-colors">Sitemap</a>
           </div>
-          <div className="border-t border-gray-800 mt-12 pt-8 text-center text-sm text-gray-500">
-            &copy; {new Date().getFullYear()} TechStore. All rights reserved.
+          <div className="mt-12 pt-12 border-t border-gray-800 text-xs font-bold text-gray-600 uppercase tracking-[0.2em]">
+            © 2026 DOANWEB. CREATED WITH PASSION.
           </div>
         </div>
       </footer>
