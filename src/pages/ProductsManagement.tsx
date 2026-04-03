@@ -21,6 +21,8 @@ export default function ProductsManagement() {
   const [editingProduct, setEditingProduct] = useState<ProductAdmin | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewImage, setPreviewImage] = useState<string>('');
   
   // Form State
   const [formData, setFormData] = useState<Partial<ProductAdmin>>({
@@ -57,9 +59,11 @@ export default function ProductsManagement() {
   };
 
   const handleOpenModal = (product: ProductAdmin | null = null) => {
+    setSelectedFile(null);
     if (product) {
       setEditingProduct(product);
       setFormData(product);
+      setPreviewImage(product.image || '');
     } else {
       setEditingProduct(null);
       setFormData({
@@ -72,6 +76,7 @@ export default function ProductsManagement() {
         description: '',
         status: 1
       });
+      setPreviewImage('');
     }
     setIsModalOpen(true);
     setError(null);
@@ -86,21 +91,54 @@ export default function ProductsManagement() {
     }));
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      if (file.size > 5 * 1024 * 1024) {
+        setError('Image size exceeds 5MB limit.');
+        e.target.value = '';
+        return;
+      }
+      setSelectedFile(file);
+      setPreviewImage(URL.createObjectURL(file));
+      setError(null);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
+    const submitData = new FormData();
+    Object.entries(formData).forEach(([key, value]) => {
+      if (value !== null && value !== undefined && key !== 'image') {
+        submitData.append(key, value.toString());
+      }
+    });
+
+    if (selectedFile) {
+      submitData.append('image_file', selectedFile);
+    } else if (formData.image) {
+      submitData.append('image', formData.image); 
+    }
+
     try {
       if (editingProduct) {
-        const response = await api.put(`/products.php?id=${editingProduct.id}`, formData);
+        submitData.append('_method', 'PUT');
+        submitData.append('id', editingProduct.id.toString());
+        const response = await api.post('/products.php', submitData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
         if (response.data.success) {
           setSuccess("Product updated successfully!");
           fetchData();
           setIsModalOpen(false);
         }
       } else {
-        const response = await api.post('/products.php', formData);
+        const response = await api.post('/products.php', submitData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
         if (response.data.success) {
           setSuccess("Product created successfully!");
           fetchData();
@@ -108,7 +146,7 @@ export default function ProductsManagement() {
         }
       }
     } catch (err: any) {
-      setError(err.response?.data?.error || "An error occurred. Make sure you are logged in as admin.");
+      setError(err.response?.data?.error || "An error occurred.");
     } finally {
       setLoading(false);
       setTimeout(() => setSuccess(null), 3000);
@@ -207,7 +245,11 @@ export default function ProductsManagement() {
                     <div className="flex items-center space-x-4">
                       <div className="w-14 h-14 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center border border-gray-100 group-hover:border-indigo-100 transition-colors">
                         {prod.image ? (
-                          <img src={prod.image} alt={prod.name} className="w-full h-full object-cover" />
+                          <img 
+                            src={prod.image.startsWith('http') || prod.image.startsWith('blob') ? prod.image : `http://localhost:7777${prod.image}`} 
+                            alt={prod.name} 
+                            className="w-full h-full object-cover" 
+                          />
                         ) : (
                           <ImageIcon className="w-6 h-6 text-gray-300" />
                         )}
@@ -391,18 +433,26 @@ export default function ProductsManagement() {
                 </div>
 
                 <div className="col-span-full">
-                  <label className="block text-sm font-bold text-gray-700 mb-2 ml-1">Image URL</label>
+                  <label className="block text-sm font-bold text-gray-700 mb-2 ml-1">Product Image</label>
                   <div className="relative">
-                    <ImageIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                     <input 
-                      type="text" 
-                      name="image"
-                      className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-600 transition-all"
-                      placeholder="https://example.com/image.jpg"
-                      value={formData.image}
-                      onChange={handleInputChange}
+                      type="file" 
+                      accept="image/*"
+                      name="image_file"
+                      className="w-full pl-4 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-600 transition-all"
+                      onChange={handleFileChange}
                     />
                   </div>
+                  {previewImage && (
+                    <div className="mt-4">
+                      <p className="text-sm font-bold text-gray-600 mb-2">Image Preview:</p>
+                      <img 
+                        src={previewImage.startsWith('blob:') || previewImage.startsWith('http') ? previewImage : `http://localhost:7777${previewImage}`} 
+                        alt="Preview" 
+                        className="h-32 rounded-xl object-contain bg-gray-100 p-2 border border-gray-200" 
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <div>

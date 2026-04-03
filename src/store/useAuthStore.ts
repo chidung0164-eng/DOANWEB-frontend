@@ -21,9 +21,11 @@ export const useAuthStore = create<AuthState>((set) => ({
       if (response.data.success) {
         set({ user: response.data.data });
       } else {
+        localStorage.removeItem('access_token');
         set({ user: null });
       }
     } catch (err) {
+      localStorage.removeItem('access_token');
       set({ user: null });
     } finally {
       set({ loading: false });
@@ -37,9 +39,11 @@ export const useAuthStore = create<AuthState>((set) => ({
   logout: async () => {
     try {
       await api.post('/auth.php?action=logout');
-      set({ user: null });
     } catch (err) {
-      console.error('Failed to logout');
+      console.error('Failed to logout on server');
+    } finally {
+      localStorage.removeItem('access_token');
+      set({ user: null });
     }
   },
 }));

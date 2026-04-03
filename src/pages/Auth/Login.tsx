@@ -31,8 +31,10 @@ export default function Login() {
     try {
       const response = await api.post('/auth.php?action=login', { email, password });
       if (response.data.success) {
-        login(response.data.data);
-        const roles = response.data.data.roles;
+        const { token, user: loggedInUser } = response.data.data;
+        localStorage.setItem('access_token', token);
+        login(loggedInUser);
+        const roles = loggedInUser.roles;
         if (roles.includes('admin')) {
           navigate('/admin');
         } else {
